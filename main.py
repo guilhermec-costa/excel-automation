@@ -68,3 +68,27 @@ for key, value in new_row.items():
     print(value)
     print('Size: ', len(value))
     print('')
+print('--------------------------------------------')
+
+# posicionamento de setups
+for col in wb.sheet.range('E10:R10'):
+    column_letter = str(col.address)[1]
+    first_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}200').end('left').row
+    last_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}200').end('down').row
+    if col.value == 'COD PRODUTO':
+        column_letter = str(col.address)[1]
+        for idx, row in enumerate(wb.sheet.range\
+                            (f'{column_letter}{first_row_index}:{column_letter}{last_row_index}')):
+            op = row.value
+            op_line = row.row
+            op_position = column_letter + str(op_line)
+            setup_for_op = new_row['TOTAL SETUP'][idx]
+
+            start_col_position = 21
+            cols = ['VWXYZ']
+            for setup in range(setup_for_op):
+                print(op_line, start_col_position)
+                wb.sheet[op_line-1, start_col_position].value = 'setup'
+                # print(f'{op_line}:{op_line+1}, {start_col_position}:{start_col_position+1}')
+                # print(start_col_position, op_line)
+                start_col_position += 1
