@@ -98,8 +98,11 @@ for col in wb.sheet.range('E10:R10'):
             total_qtd_op = new_row['QTD DA OP'][idx]
             
             counter_setup, counter_setup_extra, total_goal = 0, 0, 0
+
             while counter_setup < setup_for_op:
                 if wb.sheet[2, start_col_position].value == None:
+                    print('Start col position:')
+                    print('Pos pra setup: ', wb.sheet[op_line, start_col_position].address)
                     wb.sheet[op_line, start_col_position].value = 'setup'
                     counter_setup += 1
                 start_col_position += 1
@@ -110,19 +113,22 @@ for col in wb.sheet.range('E10:R10'):
             counter_first_setup = 1
             # posicionamento de qtd
             while True:
+                current_work_hour_object = wb.sheet[8, start_col_position]
+                #print('Hora tual:' , current_work_hour_object.value)
+                if wb.sheet[2, start_col_position].value != 'U':
+                    last_hour_of_work = 18
+                else:
+                    last_hour_of_work = int(current_work_hour_object.value)
                 if full_goal == 0:
                     break
-                if wb.sheet[2, start_col_position].value == None:
-                    print('Endereço:', wb.sheet[op_line, start_col_position].address)
+                if wb.sheet[2, start_col_position].value in (None, 'U'):
+                    # print('Endereço:', wb.sheet[op_line, start_col_position].address)
                     if counter_first_setup == 1:
                         value_to_add = quarter_goal_hour
                     elif counter_first_setup == 2:
                         value_to_add = half_goal
                     else:
-                        # pegar lista de X. Se wb.sheet[8, start_col_position].value for igual a coluna (último x - 1) na linha 8, então 75
-                        # last_work_hour = 
-                        if int(wb.sheet[8, start_col_position].value) in (8, 17, 20):
-                            print('Horário', wb.sheet[8, start_col_position].value)
+                        if int(wb.sheet[8, start_col_position].value) in (8, last_hour_of_work):
                             value_to_add = three_quarters_goal
                         else:
                             value_to_add = full_goal
@@ -135,11 +141,18 @@ for col in wb.sheet.range('E10:R10'):
                         if total_goal > total_qtd_op:
                             diff = total_goal - total_qtd_op
 
-                            # corrige a diferença
                             wb.sheet[op_line, start_col_position].value -= diff
                         break
                     counter_first_setup += 1
-                start_col_position += 1
+                if int(current_work_hour_object.value) != 3:
+                    start_col_position += 1
+                else:
+                    to_add_column = wb.sheet[1, start_col_position+1]
+                    column_text = to_add_column.address[1:3]
+                    wb.sheet.range(f'{column_text}:{column_text}').insert('down')
+                    start_col_position += 2
+                    #print('Ultima posição das 3: ', current_work_hour_object.column)
+                    break
             start_col_position += 1
             #caso a linha seja depois da 11, preenche com "setup" a célula abaixo do último setup da linha anterior
             print('Fora do loop')
