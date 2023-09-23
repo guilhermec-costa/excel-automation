@@ -1,3 +1,29 @@
+import xlwings as xw
+
+class Workbook:
+    def __init__(self, path):
+        self.wb = xw.Book(path)
+        self.sheet = None
+
+    def go_to_sheet(self, sheet_name):
+        self.sheet = self.wb.sheets(sheet_name)
+
+    @staticmethod
+    def create_empty_row():
+        row = {
+            'COD PRODUTO':[],
+            'QTD DA OP':[],
+            'QTD PROG.':[],
+            'SALDO A PROG':[],
+            'TOTAL SETUP': [],
+            'META HORA TOP':[],
+            'META HORA BOT':[],
+            'TOTAL META HORA': [],
+            'METADE META HORA': [],
+            '3/4 TOTAL HORA': []
+        }
+        return row
+
 def extract_data(**kwargs):
     wb = kwargs['wb']
     new_row = kwargs['new_row']

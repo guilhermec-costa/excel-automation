@@ -2,39 +2,14 @@ import xlwings as xw
 import math
 import utils
 
-class Workbook:
-    def __init__(self, path):
-        self.wb = xw.Book(path)
-        self.sheet = None
-
-    def go_to_sheet(self, sheet_name):
-        self.sheet = self.wb.sheets(sheet_name)
-
-    @staticmethod
-    def create_empty_row():
-        row = {
-            'COD PRODUTO':[],
-            'QTD DA OP':[],
-            'QTD PROG.':[],
-            'SALDO A PROG':[],
-            'TOTAL SETUP': [],
-            'META HORA TOP':[],
-            'META HORA BOT':[],
-            'TOTAL META HORA': [],
-            'METADE META HORA': [],
-            '3/4 TOTAL HORA': []
-        }
-        return row
-
-
-wb = Workbook('FM613programacao_SMT_OUT_2023 _TESTE.xlsb')
+# inicialização do app
+wb = utils.Workbook('FM613programacao_SMT_OUT_2023 _TESTE.xlsb')
 wb.go_to_sheet('PROGRAMAÇÃO_SMT_teste')
 new_row = wb.create_empty_row()
+
 # extração de dados da planilha
-print('extração de dados da planilha')
 utils.extract_data(wb=wb, new_row=new_row, range='E10:R10')
 
-print('--------------------------')
 # construção da lista de valores para formação de setup
 for idx, hour_goal in enumerate(new_row['META HORA TOP']):
     if hour_goal > 0:
@@ -51,7 +26,6 @@ utils.eliminate_keys(['META HORA TOP', 'META HORA BOT'])
 
 # construção das listas de meta hora, meta 50% hora e meta 75% hora
 new_row['TOTAL META HORA'] = [math.trunc(hour_goal) for hour_goal in new_row['TOTAL META HORA']]
-
 
 # correção de casos em que a meta hora é menor que a qtd da OP
 new_row['1/4 TOTAL HORA'] = []
@@ -76,7 +50,6 @@ for key, value in new_row.items():
 print('--------------------------------------------')
 # posicionamento de setups
 
-print('Posicionado setups')
 for col in wb.sheet.range('E10:R10'):
     column_letter = str(col.address)[1]
     first_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}20').end('left').row
@@ -99,6 +72,7 @@ for col in wb.sheet.range('E10:R10'):
             
             counter_setup, counter_setup_extra, total_goal = 0, 0, 0
 
+            print('Posicionado setups')
             while counter_setup < setup_for_op:
                 if wb.sheet[2, start_col_position].value == None:
                     print('Start col position:')
@@ -144,15 +118,34 @@ for col in wb.sheet.range('E10:R10'):
                             wb.sheet[op_line, start_col_position].value -= diff
                         break
                     counter_first_setup += 1
-                if int(current_work_hour_object.value) != 3:
-                    start_col_position += 1
-                else:
-                    to_add_column = wb.sheet[1, start_col_position+1]
-                    column_text = to_add_column.address[1:3]
-                    wb.sheet.range(f'{column_text}:{column_text}').insert('down')
-                    start_col_position += 2
-                    #print('Ultima posição das 3: ', current_work_hour_object.column)
-                    break
+                start_col_position += 1
             start_col_position += 1
-            #caso a linha seja depois da 11, preenche com "setup" a célula abaixo do último setup da linha anterior
-            print('Fora do loop')
+
+
+# adição de colunas de total
+start_col = 22
+last_hour_column_index = wb.sheet.range((9, start_col), (9, 500)).end('right')
+for hour in wb.sheet.range((9, start_col), (9, last_hour_column_index.column)):
+    hour_value = hour.value
+    hour_column = hour.column
+    if not hour_value in (None, 'Total'):
+        if int(hour_value) == 3:
+            # range_of_sum = wb.sheet.range[9, hour_column]
+            column_text = wb.sheet[9:9, hour_column:hour_column].address[1:3]
+            wb.sheet.range(f'{column_text}:{column_text}').insert('down')
+            wb.sheet[8, hour_column].value = 'Total'
+            wb.sheet[8, hour_column].font.bold = True
+            wb.sheet[8, hour_column].color = (127, 235, 250)
+            wb.sheet[9, hour_column].value = '-'
+    elif hour_value == 'Total':
+        range_to_sum = wb.sheet.range((11, hour_column-1), (11, hour_column-20))
+        total_to_sum = sum([value for value in range_to_sum.value if isinstance(value, (int, float))])
+        addres_to_sum = str(range_to_sum.address).replace('$', "")
+        wb.sheet[10, hour.column-1].formula = f"=SUM({addres_to_sum})"
+        first_row_index = wb.sheet.range(addres_to_sum).end('right').row
+        last_row_index = wb.sheet.range(addres_to_sum).end('down').row
+        
+        print(wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).value)
+        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).clear_formats()
+        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).font.bold = True
+        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).color = (255, 166, 43)
