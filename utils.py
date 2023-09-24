@@ -1,4 +1,8 @@
 import xlwings as xw
+import os
+import colorama
+from colorama import Fore, Back, Style
+colorama.init(autoreset=True)
 
 class Workbook:
     def __init__(self, path):
@@ -7,6 +11,10 @@ class Workbook:
 
     def go_to_sheet(self, sheet_name):
         self.sheet = self.wb.sheets(sheet_name)
+        self.sheet.activate()
+
+    def copy_sheet(self, sheet_name):
+        self.sheet.copy(name=sheet_name)
 
     @staticmethod
     def create_empty_row():
@@ -46,3 +54,33 @@ def adjust_na_values(row):
 def eliminate_keys(row, keys=[]):
     for key in keys:
         del row[key]
+
+def read_excel_path():
+    while True:
+        sheet_path = input(f"{Fore.YELLOW}Digite o caminho completo do arquivo > {Style.RESET_ALL}")
+        if os.path.exists(sheet_path):
+            print(f'{Fore.GREEN}Arquivo encontrado com sucesso!')
+            return sheet_path
+        print(f'{Fore.RED}Arquivo não encontrado. Digite novamente')
+        print('----------------------------------')
+        continue
+
+def read_excel_tab():
+    while True:
+        try:
+            sheet_name = input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: PROGRAMAÇÃO SMT) > {Style.RESET_ALL}')
+            if sheet_name == "":
+                return 'PROGRAMAÇÃO SMT'
+            else:
+                return sheet_name
+        except:
+            print(f'{Fore.RED}Verifique se a aba realmente existe na planilha especificada.')
+            continue
+
+
+def display_title(title):
+    print(Fore.CYAN)
+    title_len = len(title)
+    print(f'{Fore.CYAN}{"*"*title_len}')
+    print(f'{Fore.WHITE}{title}')
+    print(f'{Fore.CYAN}{"*"*title_len}')
