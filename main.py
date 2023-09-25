@@ -19,7 +19,7 @@ print()
 print('Cópia do arquivo inicial criada em: ', path_to_save_final_result)
 
 wb = utils.Workbook(path_to_save_final_result)
-wb.go_to_sheet(utils.read_excel_tab())
+wb.go_to_sheet(utils.read_excel_tab(wb.existints_tabs))
 new_row = wb.create_empty_row()
 
 new_row['1/4 TOTAL HORA'] = []
@@ -53,15 +53,16 @@ new_row['TOTAL META HORA'] = [math.trunc(hour_goal) for hour_goal in new_row['TO
 
 # correção de casos em que a meta hora é menor que a qtd da OP
 for idx, item in enumerate(new_row['TOTAL META HORA']):
-    item_on_qtd_op = new_row['QTD DA OP'][idx]
-    if item_on_qtd_op >= item:
-        new_row['1/4 TOTAL HORA'].append(math.trunc(item * 0.25))
-        new_row['3/4 TOTAL HORA'].append(math.trunc(item * 0.75))
-        new_row['METADE META HORA'].append(math.trunc(item/2))
-    else:
-         new_row['1/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.25))
-         new_row['3/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.75))
-         new_row['METADE META HORA'].append(item_on_qtd_op/2)
+    # item_on_qtd_op = new_row['QTD DA OP'][idx]
+    # if (0.25 * item) < item_on_qtd_op:
+    # # if item_on_qtd_op >= item:
+    new_row['1/4 TOTAL HORA'].append(math.ceil(item * 0.25))
+    new_row['3/4 TOTAL HORA'].append(math.ceil(item * 0.75))
+    new_row['METADE META HORA'].append(math.ceil(item/2))
+    # else:
+    #      new_row['1/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.25))
+    #      new_row['3/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.75))
+    #      new_row['METADE META HORA'].append(item_on_qtd_op/2)
 
 print()
 print('Posicionando setups e distribuindo peças...')
@@ -91,7 +92,7 @@ for col in wb.sheet.range('E10:R10'):
 
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
-                if wb.sheet[2, start_col_position].value == None:
+                if wb.sheet[2, start_col_position].value == 'SIM':
                     # print('Start col position:')
                     # print('Pos pra setup: ', wb.sheet[op_line, start_col_position].address)
                     wb.sheet[op_line, start_col_position].value = 'setup'
@@ -104,16 +105,15 @@ for col in wb.sheet.range('E10:R10'):
             
 
             counter_first_setup = 1
+            last_hour_of_work = 18
             # posicionamento de qtd
             while True:
                 current_work_hour_object = wb.sheet[8, start_col_position]
-                if wb.sheet[2, start_col_position].value != 'U':
-                    last_hour_of_work = 18
-                else:
+                if wb.sheet[2, start_col_position].value == 'U':
                     last_hour_of_work = int(current_work_hour_object.value)
                 if full_goal == 0:
                     break
-                if wb.sheet[2, start_col_position].value in (None, 'U'):
+                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
                     if counter_first_setup == 1:
                         value_to_add = quarter_goal_hour
                     elif counter_first_setup == 2:
@@ -137,36 +137,36 @@ for col in wb.sheet.range('E10:R10'):
                     counter_first_setup += 1
                 start_col_position += 1
             start_col_position += 1
-
+pbar.close()
 
 # adição de colunas de total
-print()
-print('Posicioando colunas de total...')
-start_col = 22
-last_hour_column_index = wb.sheet.range((9, start_col), (9, 500)).end('right')
-for hour in wb.sheet.range((9, start_col), (9, last_hour_column_index.column)):
-    hour_value = hour.value
-    hour_column = hour.column
-    if not hour_value in (None, 'Total'):
-        if int(hour_value) == 3:
-            column_text = wb.sheet[9:9, hour_column:hour_column].address[1:3]
-            wb.sheet.range(f'{column_text}:{column_text}').insert('down')
-            wb.sheet[8, hour_column].value = 'Total'
-            wb.sheet[8, hour_column].font.bold = True
-            wb.sheet[8, hour_column].color = (127, 235, 250)
-            wb.sheet[9, hour_column].value = '-'
+# print()
+# print('Posicioando colunas de total...')
+# start_col = 22
+# last_hour_column_index = wb.sheet.range((9, start_col), (9, 500)).end('right')
+# for hour in wb.sheet.range((9, start_col), (9, last_hour_column_index.column)):
+#     hour_value = hour.value
+#     hour_column = hour.column
+#     if not hour_value in (None, 'Total'):
+#         if int(hour_value) == 3:
+#             column_text = wb.sheet[9:9, hour_column:hour_column].address[1:3]
+#             wb.sheet.range(f'{column_text}:{column_text}').insert('down')
+#             wb.sheet[8, hour_column].value = 'Total'
+#             wb.sheet[8, hour_column].font.bold = True
+#             wb.sheet[8, hour_column].color = (127, 235, 250)
+#             wb.sheet[9, hour_column].value = '-'
 
-    elif hour_value == 'Total':
-        range_to_sum = wb.sheet.range((11, hour_column-1), (11, hour_column-20))
-        total_to_sum = sum([value for value in range_to_sum.value if isinstance(value, (int, float))])
-        addres_to_sum = str(range_to_sum.address).replace('$', "")
-        wb.sheet[10, hour.column-1].formula = f"=SUM({addres_to_sum})"
-        first_row_index = wb.sheet.range(addres_to_sum).end('right').row
-        last_row_index = wb.sheet.range(addres_to_sum).end('down').row
+#     elif hour_value == 'Total':
+#         range_to_sum = wb.sheet.range((11, hour_column-1), (11, hour_column-20))
+#         total_to_sum = sum([value for value in range_to_sum.value if isinstance(value, (int, float))])
+#         addres_to_sum = str(range_to_sum.address).replace('$', "")
+#         wb.sheet[10, hour.column-1].formula = f"=SUM({addres_to_sum})"
+#         first_row_index = wb.sheet.range(addres_to_sum).end('right').row
+#         last_row_index = wb.sheet.range(addres_to_sum).end('down').row
         
-        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).clear_formats()
-        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).font.bold = True
-        wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).color = (255, 166, 43)
+#         wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).clear_formats()
+#         wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).font.bold = True
+#         wb.sheet.range((first_row_index, hour_column), (last_row_index, hour_column)).color = (255, 166, 43)
 
 if input('Pressione enter para salvar o arquivo') == "":
     wb.wb.save()

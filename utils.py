@@ -8,6 +8,7 @@ class Workbook:
     def __init__(self, path):
         self.wb = xw.Book(path)
         self.sheet = None
+        self.existints_tabs = self.wb.sheet_names
 
     def go_to_sheet(self, sheet_name):
         self.sheet = self.wb.sheets(sheet_name)
@@ -65,15 +66,16 @@ def read_excel_path():
         print('----------------------------------')
         continue
 
-def read_excel_tab():
+def read_excel_tab(existing_tabs):
+    default_sheet = 'PROGRAMAÇÃO SMT'
     while True:
-        try:
-            sheet_name = input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: PROGRAMAÇÃO SMT) > {Style.RESET_ALL}')
+        sheet_name = str(input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: PROGRAMAÇÃO SMT) > {Style.RESET_ALL}'))
+        if sheet_name in existing_tabs: 
             if sheet_name == "":
-                return 'PROGRAMAÇÃO SMT'
+                return default_sheet
             else:
                 return sheet_name
-        except:
+        else:
             print(f'{Fore.RED}Verifique se a aba realmente existe na planilha especificada.')
             continue
 
