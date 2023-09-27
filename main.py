@@ -66,21 +66,21 @@ for idx, item in enumerate(new_row['TOTAL META HORA']):
 
 print()
 print('Posicionando setups e distribuindo peças...')
+start_col_position = 21
 for col in wb.sheet.range('E10:R10'):
-    column_letter = str(col.address)[1]
-    first_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}20').end('left').row
-    last_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}20').end('down').row
+    first_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('left').row
+    last_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('down').row
+
     if col.value == 'COD PRODUTO':
-        column_letter = str(col.address)[1]
-        start_col_position = 21
+        col_values = enumerate(wb.sheet.range((first_row_index, col.column), (last_row_index, col.column)))
         pbar = tqdm(total=last_row_index - first_row_index+1)
-        for idx, row in tqdm(enumerate(wb.sheet.range\
-                            (f'{column_letter}{first_row_index}:{column_letter}{last_row_index}'))):
- 
-            time.sleep(0.25)
+        # for idx, row in tqdm(enumerate(wb.sheet.range\
+        #                     (f'{column_letter}{first_row_index}:{column_letter}{last_row_index}'))):
+
+        for idx, row in tqdm(col_values):
+            time.sleep(0.20)
             pbar.update(1)
             op_line = row.row-1
-            op_position = column_letter + str(op_line)
             setup_for_op = new_row['TOTAL SETUP'][idx]
             quarter_goal_hour = new_row['1/4 TOTAL HORA'][idx]
             three_quarters_goal = new_row['3/4 TOTAL HORA'][idx]
@@ -92,9 +92,7 @@ for col in wb.sheet.range('E10:R10'):
 
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
-                if wb.sheet[2, start_col_position].value == 'SIM':
-                    # print('Start col position:')
-                    # print('Pos pra setup: ', wb.sheet[op_line, start_col_position].address)
+                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
                     wb.sheet[op_line, start_col_position].value = 'setup'
                     counter_setup += 1
                 start_col_position += 1
@@ -119,7 +117,7 @@ for col in wb.sheet.range('E10:R10'):
                     elif counter_first_setup == 2:
                         value_to_add = half_goal
                     else:
-                        if int(wb.sheet[8, start_col_position].value) in (8, last_hour_of_work):
+                        if wb.sheet[8, start_col_position].value in (8, last_hour_of_work):
                             value_to_add = three_quarters_goal
                         else:
                             value_to_add = full_goal
@@ -127,12 +125,14 @@ for col in wb.sheet.range('E10:R10'):
                     total_goal += value_to_add
                     if total_goal <= total_qtd_op:
                         wb.sheet[op_line, start_col_position].value = value_to_add
+                        # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
                     else:
                         wb.sheet[op_line, start_col_position].value = value_to_add
                         if total_goal > total_qtd_op:
                             diff = total_goal - total_qtd_op
 
                             wb.sheet[op_line, start_col_position].value -= diff
+                            # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
                         break
                     counter_first_setup += 1
                 start_col_position += 1

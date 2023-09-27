@@ -67,14 +67,12 @@ def read_excel_path():
         continue
 
 def read_excel_tab(existing_tabs):
-    default_sheet = 'PROGRAMAÇÃO SMT'
     while True:
         sheet_name = str(input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: PROGRAMAÇÃO SMT) > {Style.RESET_ALL}'))
+        if sheet_name == "":
+            return 'PROGRAMAÇÃO SMT'
         if sheet_name in existing_tabs: 
-            if sheet_name == "":
-                return default_sheet
-            else:
-                return sheet_name
+            return sheet_name
         else:
             print(f'{Fore.RED}Verifique se a aba realmente existe na planilha especificada.')
             continue
