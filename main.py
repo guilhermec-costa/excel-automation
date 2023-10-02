@@ -43,7 +43,7 @@ for idx, hour_goal in enumerate(new_row['META HORA TOP']):
 
 # substituição de valores vazios por zeros
 utils.adjust_na_values(new_row)
-
+print(new_row['TOTAL SETUP'])
 # arredondamento das horas de setup para hora superior mais próxima
 new_row['TOTAL SETUP'] = [math.ceil(setup) for setup in new_row['TOTAL SETUP']]
 utils.eliminate_keys(['META HORA TOP', 'META HORA BOT'])
@@ -80,6 +80,8 @@ for col in wb.sheet.range('E10:R10'):
         for idx, row in tqdm(col_values):
             time.sleep(0.20)
             pbar.update(1)
+            op_value = row.value
+            print(op_value)
             op_line = row.row-1
             setup_for_op = new_row['TOTAL SETUP'][idx]
             quarter_goal_hour = new_row['1/4 TOTAL HORA'][idx]
@@ -93,7 +95,13 @@ for col in wb.sheet.range('E10:R10'):
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
                 if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
-                    wb.sheet[op_line, start_col_position].value = 'setup'
+                    if op_value in ('MANUT', 'PPROG'):
+                        wb.sheet[op_line, start_col_position].value = str(op_value).lower()
+                        wb.sheet[op_line, start_col_position].autofit()
+                    else:
+                        wb.sheet[op_line, start_col_position].value = 'setup'
+
+
                     counter_setup += 1
                 start_col_position += 1
 
@@ -110,6 +118,7 @@ for col in wb.sheet.range('E10:R10'):
                 if wb.sheet[2, start_col_position].value == 'U':
                     last_hour_of_work = int(current_work_hour_object.value)
                 if full_goal == 0:
+                    start_col_position -= 1
                     break
                 if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
                     if counter_first_setup == 1:
