@@ -81,7 +81,6 @@ for col in wb.sheet.range('E10:R10'):
             time.sleep(0.20)
             pbar.update(1)
             op_value = row.value
-            print(op_value)
             op_line = row.row-1
             setup_for_op = new_row['TOTAL SETUP'][idx]
             quarter_goal_hour = new_row['1/4 TOTAL HORA'][idx]
