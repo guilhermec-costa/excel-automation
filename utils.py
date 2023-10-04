@@ -2,7 +2,9 @@ import xlwings as xw
 import os
 import colorama
 from colorama import Fore, Back, Style
+import time
 colorama.init(autoreset=True)
+import re
 
 class Workbook:
     def __init__(self, path):
@@ -16,6 +18,9 @@ class Workbook:
 
     def copy_sheet(self, sheet_name):
         self.sheet.copy(name=sheet_name)
+
+    def close(self):
+        self.wb.close()
 
     @staticmethod
     def create_empty_row():
@@ -77,6 +82,20 @@ def read_excel_tab(existing_tabs):
             print(f'{Fore.RED}Verifique se a aba realmente existe na planilha especificada.')
             continue
 
+def save_excel_tab(sheet:Workbook):
+    default_location = sheet.wb.sheets("APOIO").range((4,5), (4,5)).value
+
+    # fecha a nova aba aberta
+    sheet.wb.app.quit()
+    while True:
+        path = input(f'{Fore.YELLOW}Digite o local de salvamento do arquivo{Style.RESET_ALL} {Fore.GREEN}(Padrão: {default_location}) > {Style.RESET_ALL}')
+        if path == "":
+            path = default_location
+        if os.path.exists(path):
+            return path
+        else:
+            print(f'{Fore.RED}Verifique se o caminho realmente existe no sistema.')
+            continue
 
 def display_title(title):
     print(Fore.CYAN)

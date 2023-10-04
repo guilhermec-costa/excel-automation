@@ -5,20 +5,25 @@ import utils
 import os
 import datetime
 from tqdm import tqdm
+import xlwings as xl
 
 DATE_FORMATTED = datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
+NAME = "FM-613 Programação SMT"
 # inicialização do app
 
 title = 'Programação SMT'
 utils.display_title(title)
 sheet_path = utils.read_excel_path()
-path_to_save_final_result = os.getcwd() + f"\Copia_SMT_preenchida_{DATE_FORMATTED}.xlsb"
+tmp_sheet = utils.Workbook(sheet_path)
+print()
+path_to_save = utils.save_excel_tab(tmp_sheet)
+path_to_save_final_result = path_to_save + f"{NAME}_{DATE_FORMATTED}.xlsb"
 
-shutil.copyfile(sheet_path, path_to_save_final_result)
+shutil.copyfile(fr"{sheet_path}", fr"{path_to_save_final_result}")
 print()
 print('Cópia do arquivo inicial criada em: ', path_to_save_final_result)
 
-wb = utils.Workbook(path_to_save_final_result)
+wb = utils.Workbook(fr"{path_to_save_final_result}")
 wb.go_to_sheet(utils.read_excel_tab(wb.existints_tabs))
 new_row = wb.create_empty_row()
 
@@ -41,42 +46,32 @@ for idx, hour_goal in enumerate(new_row['META HORA TOP']):
     else:
         new_row['TOTAL META HORA'].append(new_row['META HORA BOT'][idx])
 
+
 # substituição de valores vazios por zeros
 utils.adjust_na_values(new_row)
-print(new_row['TOTAL SETUP'])
 # arredondamento das horas de setup para hora superior mais próxima
 new_row['TOTAL SETUP'] = [math.ceil(setup) for setup in new_row['TOTAL SETUP']]
 utils.eliminate_keys(['META HORA TOP', 'META HORA BOT'])
 
 # construção das listas de meta hora, meta 50% hora e meta 75% hora
-new_row['TOTAL META HORA'] = [math.trunc(hour_goal) for hour_goal in new_row['TOTAL META HORA']]
+new_row['TOTAL META HORA'] = [math.ceil(hour_goal) for hour_goal in new_row['TOTAL META HORA']]
 
 # correção de casos em que a meta hora é menor que a qtd da OP
-for idx, item in enumerate(new_row['TOTAL META HORA']):
-    # item_on_qtd_op = new_row['QTD DA OP'][idx]
-    # if (0.25 * item) < item_on_qtd_op:
-    # # if item_on_qtd_op >= item:
-    new_row['1/4 TOTAL HORA'].append(math.ceil(item * 0.25))
-    new_row['3/4 TOTAL HORA'].append(math.ceil(item * 0.75))
-    new_row['METADE META HORA'].append(math.ceil(item/2))
-    # else:
-    #      new_row['1/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.25))
-    #      new_row['3/4 TOTAL HORA'].append(math.trunc(item_on_qtd_op * 0.75))
-    #      new_row['METADE META HORA'].append(item_on_qtd_op/2)
+for value in new_row['TOTAL META HORA']:
+    new_row['1/4 TOTAL HORA'].append(math.ceil(value * 0.25))
+    new_row['3/4 TOTAL HORA'].append(math.ceil(value * 0.75))
+    new_row['METADE META HORA'].append(math.ceil(value/2))
 
 print()
 print('Posicionando setups e distribuindo peças...')
 start_col_position = 21
-for col in wb.sheet.range('E10:R10'):
+for col in wb.sheet.range((10, 5), (10, 18)):
     first_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('left').row
     last_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('down').row
 
     if col.value == 'COD PRODUTO':
         col_values = enumerate(wb.sheet.range((first_row_index, col.column), (last_row_index, col.column)))
         pbar = tqdm(total=last_row_index - first_row_index+1)
-        # for idx, row in tqdm(enumerate(wb.sheet.range\
-        #                     (f'{column_letter}{first_row_index}:{column_letter}{last_row_index}'))):
-
         for idx, row in tqdm(col_values):
             time.sleep(0.20)
             pbar.update(1)
@@ -178,7 +173,7 @@ pbar.close()
 
 if input('Pressione enter para salvar o arquivo') == "":
     wb.wb.save()
-    print(f'Arquivo salvo em {os.getcwd()}')
+    print(f'Arquivo salvo em {path_to_save_final_result}')
 if input('Pressione enter para fechar o programa') == "":
     print('Finalizando programa em 3 segundos...')
     time.sleep(3)
