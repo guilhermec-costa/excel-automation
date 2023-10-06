@@ -72,10 +72,11 @@ def read_excel_path():
         continue
 
 def read_excel_tab(existing_tabs):
+    default = "PROGRAMAÇÃO SMT L2"
     while True:
-        sheet_name = str(input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: PROGRAMAÇÃO SMT) > {Style.RESET_ALL}'))
+        sheet_name = str(input(f'{Fore.YELLOW}Digite o nome da aba no excel para o preenchimento{Style.RESET_ALL} {Fore.GREEN}(Padrão: {default}) > {Style.RESET_ALL}'))
         if sheet_name == "":
-            return 'PROGRAMAÇÃO SMT'
+            return default
         if sheet_name in existing_tabs: 
             return sheet_name
         else:

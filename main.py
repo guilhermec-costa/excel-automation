@@ -9,6 +9,7 @@ import xlwings as xl
 
 DATE_FORMATTED = datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
 NAME = "FM-613 Programação SMT"
+OPS_EXCEPTIONS = ('MANUT', 'PPROG', "manut", "pprog", "OPANT", "opant")
 # inicialização do app
 
 title = 'Programação SMT'
@@ -54,13 +55,13 @@ new_row['TOTAL SETUP'] = [math.ceil(setup) for setup in new_row['TOTAL SETUP']]
 utils.eliminate_keys(['META HORA TOP', 'META HORA BOT'])
 
 # construção das listas de meta hora, meta 50% hora e meta 75% hora
-new_row['TOTAL META HORA'] = [math.ceil(hour_goal) for hour_goal in new_row['TOTAL META HORA']]
+new_row['TOTAL META HORA'] = [math.floor(hour_goal) for hour_goal in new_row['TOTAL META HORA']]
 
 # correção de casos em que a meta hora é menor que a qtd da OP
 for value in new_row['TOTAL META HORA']:
-    new_row['1/4 TOTAL HORA'].append(math.ceil(value * 0.25))
-    new_row['3/4 TOTAL HORA'].append(math.ceil(value * 0.75))
-    new_row['METADE META HORA'].append(math.ceil(value/2))
+    new_row['1/4 TOTAL HORA'].append(math.floor(value * 0.25))
+    new_row['3/4 TOTAL HORA'].append(math.floor(value * 0.75))
+    new_row['METADE META HORA'].append(math.floor(value/2))
 
 print()
 print('Posicionando setups e distribuindo peças...')
@@ -83,13 +84,14 @@ for col in wb.sheet.range((10, 5), (10, 18)):
             half_goal = new_row['METADE META HORA'][idx]
             full_goal = new_row['TOTAL META HORA'][idx]
             total_qtd_op = new_row['QTD DA OP'][idx]
+            print("Full goal: ", full_goal, "        ")
             
             counter_setup, counter_setup_extra, total_goal = 0, 0, 0
 
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
                 if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
-                    if op_value in ('MANUT', 'PPROG'):
+                    if op_value in OPS_EXCEPTIONS:
                         wb.sheet[op_line, start_col_position].value = str(op_value).lower()
                         wb.sheet[op_line, start_col_position].autofit()
                     else:
@@ -105,26 +107,33 @@ for col in wb.sheet.range((10, 5), (10, 18)):
             
 
             counter_first_setup = 1
-            last_hour_of_work = 18
+            #last_hour_of_work = 18
             # posicionamento de qtd
             while True:
                 current_work_hour_object = wb.sheet[8, start_col_position]
                 if wb.sheet[2, start_col_position].value == 'U':
                     last_hour_of_work = int(current_work_hour_object.value)
-                if full_goal == 0:
-                    start_col_position -= 1
-                    break
-                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
+                    if wb.sheet[8, start_col_position].value == last_hour_of_work:
+                        if counter_first_setup == 1:
+                            value_to_add = quarter_goal_hour
+                        elif counter_first_setup == 2:
+                            value_to_add = half_goal
+                        else:
+                            value_to_add = three_quarters_goal
+                elif wb.sheet[2, start_col_position].value == 'SIM':
+                    if full_goal == 0 or total_qtd_op == 0:
+                        start_col_position -= 1
+                        break
                     if counter_first_setup == 1:
                         value_to_add = quarter_goal_hour
                     elif counter_first_setup == 2:
                         value_to_add = half_goal
                     else:
-                        if wb.sheet[8, start_col_position].value in (8, last_hour_of_work):
+                        if wb.sheet[8, start_col_position].value == 8:
                             value_to_add = three_quarters_goal
                         else:
                             value_to_add = full_goal
-
+                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
                     total_goal += value_to_add
                     if total_goal <= total_qtd_op:
                         wb.sheet[op_line, start_col_position].value = value_to_add
