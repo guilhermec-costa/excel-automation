@@ -9,7 +9,7 @@ import xlwings as xl
 
 DATE_FORMATTED = datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
 NAME = "FM-613 Programação SMT"
-OPS_EXCEPTIONS = ('MANUT', 'PPROG', "manut", "pprog", "OPANT", "opant")
+OPS_EXCEPTIONS = ('MANUT', 'PPROG', "manut", "pprog", "OPANT", "opant", "atraso", "ATRASO")
 # inicialização do app
 
 title = 'Programação SMT'
@@ -66,9 +66,9 @@ for value in new_row['TOTAL META HORA']:
 print()
 print('Posicionando setups e distribuindo peças...')
 start_col_position = 21
-for col in wb.sheet.range((10, 5), (10, 18)):
-    first_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('left').row
-    last_row_index = wb.sheet.range((11, col.column), (20, col.column)).end('down').row
+for col in wb.sheet.range((36, 5), (36, 18)):
+    first_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('left').row
+    last_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('down').row
 
     if col.value == 'COD PRODUTO':
         col_values = enumerate(wb.sheet.range((first_row_index, col.column), (last_row_index, col.column)))
@@ -84,13 +84,12 @@ for col in wb.sheet.range((10, 5), (10, 18)):
             half_goal = new_row['METADE META HORA'][idx]
             full_goal = new_row['TOTAL META HORA'][idx]
             total_qtd_op = new_row['QTD DA OP'][idx]
-            print("Full goal: ", full_goal, "        ")
             
             counter_setup, counter_setup_extra, total_goal = 0, 0, 0
 
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
-                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
+                if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
                     if op_value in OPS_EXCEPTIONS:
                         wb.sheet[op_line, start_col_position].value = str(op_value).lower()
                         wb.sheet[op_line, start_col_position].autofit()
@@ -110,17 +109,17 @@ for col in wb.sheet.range((10, 5), (10, 18)):
             #last_hour_of_work = 18
             # posicionamento de qtd
             while True:
-                current_work_hour_object = wb.sheet[8, start_col_position]
-                if wb.sheet[2, start_col_position].value == 'U':
-                    last_hour_of_work = int(current_work_hour_object.value)
-                    if wb.sheet[8, start_col_position].value == last_hour_of_work:
-                        if counter_first_setup == 1:
-                            value_to_add = quarter_goal_hour
-                        elif counter_first_setup == 2:
-                            value_to_add = half_goal
-                        else:
-                            value_to_add = three_quarters_goal
-                elif wb.sheet[2, start_col_position].value == 'SIM':
+                current_work_hour_object = wb.sheet[34, start_col_position].value
+                if wb.sheet[28, start_col_position].value == 'U':
+                    last_hour_of_work = int(current_work_hour_object)
+                    #if current_work_hour_object == last_hour_of_work:
+                    if counter_first_setup == 1:
+                        value_to_add = quarter_goal_hour
+                    elif counter_first_setup == 2:
+                        value_to_add = half_goal
+                    else:
+                        value_to_add = three_quarters_goal
+                elif wb.sheet[28, start_col_position].value == 'SIM':
                     if full_goal == 0 or total_qtd_op == 0:
                         start_col_position -= 1
                         break
@@ -129,11 +128,11 @@ for col in wb.sheet.range((10, 5), (10, 18)):
                     elif counter_first_setup == 2:
                         value_to_add = half_goal
                     else:
-                        if wb.sheet[8, start_col_position].value == 8:
+                        if current_work_hour_object == 8:
                             value_to_add = three_quarters_goal
                         else:
                             value_to_add = full_goal
-                if wb.sheet[2, start_col_position].value in ('SIM', 'U'):
+                if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
                     total_goal += value_to_add
                     if total_goal <= total_qtd_op:
                         wb.sheet[op_line, start_col_position].value = value_to_add

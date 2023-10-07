@@ -42,13 +42,12 @@ def extract_data(**kwargs):
     wb = kwargs['wb']
     new_row = kwargs['new_row']
     range = kwargs['range']
-    for col in wb.sheet.range(range):
-        column_letter = str(col.address)[1]
-        first_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}20').end('right').row
-        last_row_index = wb.sheet.range(f'{column_letter}11:{column_letter}20').end('down').row
+    for col in wb.sheet.range((36, 5), (36, 18)):
+        first_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('left').row
+        last_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('down').row
         if col.value in new_row.keys():
             new_row[col.value].extend \
-            (wb.sheet.range(f'{column_letter}{first_row_index}:{column_letter}{last_row_index}').value)
+            (wb.sheet.range((first_row_index, col.column), (last_row_index, col.column)).value)
 
 
 def adjust_na_values(row):
