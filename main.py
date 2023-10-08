@@ -86,7 +86,7 @@ for col in wb.sheet.range((36, 5), (36, 18)):
             total_qtd_op = new_row['QTD DA OP'][idx]
             
             counter_setup, counter_setup_extra, total_goal = 0, 0, 0
-
+            used_hours = 0
             # print('Posicionado setups')
             while counter_setup < setup_for_op:
                 if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
@@ -95,7 +95,7 @@ for col in wb.sheet.range((36, 5), (36, 18)):
                         wb.sheet[op_line, start_col_position].autofit()
                     else:
                         wb.sheet[op_line, start_col_position].value = 'setup'
-
+                    used_hours += 1
 
                     counter_setup += 1
                 start_col_position += 1
@@ -135,10 +135,12 @@ for col in wb.sheet.range((36, 5), (36, 18)):
                 if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
                     total_goal += value_to_add
                     if total_goal <= total_qtd_op:
+                        used_hours += 1
                         wb.sheet[op_line, start_col_position].value = value_to_add
                         # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
                     else:
                         wb.sheet[op_line, start_col_position].value = value_to_add
+                        used_hours += 1
                         if total_goal > total_qtd_op:
                             diff = total_goal - total_qtd_op
 
@@ -147,6 +149,7 @@ for col in wb.sheet.range((36, 5), (36, 18)):
                         break
                     counter_first_setup += 1
                 start_col_position += 1
+            wb.sheet[op_line, 8].value = used_hours
             start_col_position += 1
 pbar.close()
 
