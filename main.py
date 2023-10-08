@@ -15,16 +15,19 @@ OPS_EXCEPTIONS = ('MANUT', 'PPROG', "manut", "pprog", "OPANT", "opant", "atraso"
 title = 'Programação SMT'
 utils.display_title(title)
 sheet_path = utils.read_excel_path()
-tmp_sheet = utils.Workbook(sheet_path)
+#tmp_sheet = utils.Workbook(sheet_path)
 print()
-path_to_save = utils.save_excel_tab(tmp_sheet)
-path_to_save_final_result = path_to_save + f"{NAME}_{DATE_FORMATTED}.xlsb"
+# path_to_save = utils.save_excel_tab(tmp_sheet)
 
-shutil.copyfile(fr"{sheet_path}", fr"{path_to_save_final_result}")
-print()
-print('Cópia do arquivo inicial criada em: ', path_to_save_final_result)
+# quando precisar usar caminho de salvamento personalizado, descomentar essas linhas
+# e passar path_to_save_final_result como parâmetro em "wb = utils.Workbook(fr"{sheet_path}")"
+# path_to_save_final_result = path_to_save + f"{NAME}_{DATE_FORMATTED}.xlsb"
 
-wb = utils.Workbook(fr"{path_to_save_final_result}")
+# shutil.copyfile(fr"{sheet_path}", fr"{path_to_save_final_result}")
+# print()
+# print('Cópia do arquivo inicial criada em: ', path_to_save_final_result)
+
+wb = utils.Workbook(fr"{sheet_path}")
 wb.go_to_sheet(utils.read_excel_tab(wb.existints_tabs))
 new_row = wb.create_empty_row()
 
@@ -184,7 +187,7 @@ pbar.close()
 
 if input('Pressione enter para salvar o arquivo') == "":
     wb.wb.save()
-    print(f'Arquivo salvo em {path_to_save_final_result}')
+    # print(f'Arquivo salvo em {sheet_path}')
 if input('Pressione enter para fechar o programa') == "":
     print('Finalizando programa em 3 segundos...')
     time.sleep(3)
