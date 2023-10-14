@@ -69,7 +69,7 @@ while True:
 
     print()
     print('Posicionando setups e distribuindo peças...')
-    start_col_position = 21
+    start_col_position = 23
     for col in wb.sheet.range((36, 5), (36, 18)):
         first_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('left').row
         last_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('down').row
@@ -88,8 +88,11 @@ while True:
                 half_goal = new_row['METADE META HORA'][idx]
                 full_goal = new_row['TOTAL META HORA'][idx]
                 total_qtd_op = new_row['QTD DA OP'][idx]
-                
                 counter_setup, counter_setup_extra, total_goal = 0, 0, 0
+                first_hour_date_formatted = datetime.datetime.\
+                strftime(wb.sheet[32, start_col_position].value, "%d/%m")
+                first_hour = str(round(wb.sheet[34, start_col_position].value)) + "h:00"
+                wb.sheet[op_line, 9].value = first_hour_date_formatted + " " + first_hour
                 used_hours = 0
                 # print('Posicionado setups')
                 while counter_setup < setup_for_op:
@@ -112,48 +115,51 @@ while True:
                 counter_first_setup = 1
                 #last_hour_of_work = 18
                 # posicionamento de qtd
-                while True:
-                    current_work_hour_object = wb.sheet[34, start_col_position].value
-                    if wb.sheet[28, start_col_position].value == 'U':
-                        last_hour_of_work = int(current_work_hour_object)
-                        #if current_work_hour_object == last_hour_of_work:
-                        if counter_first_setup == 1:
-                            value_to_add = quarter_goal_hour
-                        elif counter_first_setup == 2:
-                            value_to_add = half_goal
-                        else:
-                            value_to_add = three_quarters_goal
-                    elif wb.sheet[28, start_col_position].value == 'SIM':
-                        if full_goal == 0 or total_qtd_op == 0:
-                            start_col_position -= 1
-                            break
-                        if counter_first_setup == 1:
-                            value_to_add = quarter_goal_hour
-                        elif counter_first_setup == 2:
-                            value_to_add = half_goal
-                        else:
-                            if current_work_hour_object == 8:
-                                value_to_add = three_quarters_goal
+                if full_goal == 0 or total_qtd_op == 0:
+                    start_col_position -= 1
+                else:
+                    while True:
+                        current_work_hour_object = wb.sheet[34, start_col_position].value
+                        if wb.sheet[28, start_col_position].value == 'U':
+                            last_hour_of_work = int(current_work_hour_object)
+                            #if current_work_hour_object == last_hour_of_work:
+                            if counter_first_setup == 1:
+                                value_to_add = quarter_goal_hour
+                            elif counter_first_setup == 2:
+                                value_to_add = half_goal
                             else:
-                                value_to_add = full_goal
-                    if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
-                        total_goal += value_to_add
-                        if total_goal <= total_qtd_op:
-                            used_hours += 1
-                            wb.sheet[op_line, start_col_position].value = value_to_add
-                            # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
-                        else:
-                            wb.sheet[op_line, start_col_position].value = value_to_add
-                            used_hours += 1
-                            if total_goal > total_qtd_op:
-                                diff = total_goal - total_qtd_op
-
-                                wb.sheet[op_line, start_col_position].value -= diff
+                                value_to_add = three_quarters_goal
+                        elif wb.sheet[28, start_col_position].value == 'SIM':
+                            if counter_first_setup == 1:
+                                value_to_add = quarter_goal_hour
+                            elif counter_first_setup == 2:
+                                value_to_add = half_goal
+                            else:
+                                if current_work_hour_object == 8:
+                                    value_to_add = three_quarters_goal
+                                else:
+                                    value_to_add = full_goal
+                        if wb.sheet[28, start_col_position].value in ('SIM', 'U'):
+                            total_goal += value_to_add
+                            if total_goal <= total_qtd_op:
+                                used_hours += 1
+                                wb.sheet[op_line, start_col_position].value = value_to_add
                                 # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
-                            break
-                        counter_first_setup += 1
-                    start_col_position += 1
+                            else:
+                                wb.sheet[op_line, start_col_position].value = value_to_add
+                                used_hours += 1
+                                if total_goal > total_qtd_op:
+                                    diff = total_goal - total_qtd_op
+
+                                    wb.sheet[op_line, start_col_position].value -= diff
+                                    # wb.sheet.range((1, start_col_position), (last_row_index, start_col_position)).columns.autofit()
+                                break
+                            counter_first_setup += 1
+                        start_col_position += 1
                 # preenche a quantidade de horas usadas para a OP
+                last_hour_date_formatted = datetime.datetime.strftime(wb.sheet[32, start_col_position].value, "%d/%m")
+                last_hour = str(round(wb.sheet[34, start_col_position].value)) + "h:00"
+                wb.sheet[op_line, 10].value = last_hour_date_formatted + " " + last_hour
                 wb.sheet[op_line, 8].value = used_hours
                 start_col_position += 1
     pbar.close()

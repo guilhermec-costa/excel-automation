@@ -41,8 +41,7 @@ class Workbook:
 def extract_data(**kwargs):
     wb = kwargs['wb']
     new_row = kwargs['new_row']
-    range = kwargs['range']
-    for col in wb.sheet.range((36, 5), (36, 18)):
+    for col in wb.sheet.range((36, 5), (36, 20)):
         first_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('left').row
         last_row_index = wb.sheet.range((37, col.column), (37, col.column)).end('down').row
         if col.value in new_row.keys():
