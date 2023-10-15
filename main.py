@@ -89,9 +89,10 @@ while True:
                 full_goal = new_row['TOTAL META HORA'][idx]
                 total_qtd_op = new_row['QTD DA OP'][idx]
                 counter_setup, counter_setup_extra, total_goal = 0, 0, 0
+
                 first_hour_date_formatted = datetime.datetime.\
                 strftime(wb.sheet[32, start_col_position].value, "%d/%m")
-                first_hour = str(round(wb.sheet[34, start_col_position].value)) + "h:00"
+                first_hour = str(round(wb.sheet[34, start_col_position].value)) + "h"
                 wb.sheet[op_line, 9].value = first_hour_date_formatted + " " + first_hour
                 used_hours = 0
                 # print('Posicionado setups')
@@ -158,7 +159,7 @@ while True:
                         start_col_position += 1
                 # preenche a quantidade de horas usadas para a OP
                 last_hour_date_formatted = datetime.datetime.strftime(wb.sheet[32, start_col_position].value, "%d/%m")
-                last_hour = str(round(wb.sheet[34, start_col_position].value)) + "h:00"
+                last_hour = str(round(wb.sheet[34, start_col_position].value)) + "h"
                 wb.sheet[op_line, 10].value = last_hour_date_formatted + " " + last_hour
                 wb.sheet[op_line, 8].value = used_hours
                 start_col_position += 1
